@@ -149,6 +149,7 @@
         let keys = ["专业代码", "姓名", "身份证号", "政治面貌", "曾用名", "民族", "出生年月", "是否在职"
             , "现任职务、职称或工种", "参加自学考试前学历", "工作单位", "联系电话", "邮政编码", "通讯地址"];
 
+        let zkScriptIdKey = "zk-script-no-";
         let persons = [];
         for (let i = 0; i < mainTables.length; i++) {
             let table = mainTables[i];
@@ -176,6 +177,12 @@
                 persons.push(person);
                 break;
             }
+
+            if (!person["准考证号"]) {
+                continue;
+            }
+
+            table.parentNode.id = zkScriptIdKey + i;
 
             // 提取信息，放入准考证号对应的 person 中
             for (let j = 0; j < trs.length; j++) {
@@ -274,7 +281,7 @@
             }
             let message = person.verifyMessage.join("，");
             // 需要用 ol 来显示错误信息
-            innerHTML += `<li>序号：${i + 1}。${person.姓名.value}[${person.准考证号}]：${message}</li>`;
+            innerHTML += `<li>序号：[<a href="#${zkScriptIdKey}${i}">${i + 1}</a>]。${person.姓名.value}[${person.准考证号}]：${message}</li>`;
         }
         innerHTML += `</ol>`;
         document.getElementById("verify-zk").innerHTML = innerHTML + "<hr>";
