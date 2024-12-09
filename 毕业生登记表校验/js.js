@@ -281,7 +281,7 @@
             }
             let message = person.verifyMessage.join("，");
             // 需要用 ol 来显示错误信息
-            innerHTML += `<li>序号：[<a href="#${zkScriptIdKey}${i}">${i + 1}</a>]。${person.姓名.value}[${person.准考证号}]：${message}</li>`;
+            innerHTML += `<li>序号：[<a href="#${zkScriptIdKey}${i}">${(i + 1) < 10 ? ("0" + (i + 1)) : (i + 1)}] ${person.姓名.value.padEnd(4, "　")}[${person.准考证号}]</a>：${message}</li>`;
         }
         innerHTML += `</ol>`;
         document.getElementById("verify-zk").innerHTML = innerHTML + "<hr>";
