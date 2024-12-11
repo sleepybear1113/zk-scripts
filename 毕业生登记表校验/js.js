@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         自考毕业生登记表校验
 // @namespace    http://tampermonkey.net/
-// @version      2024-06-11
+// @version      2024-12-11
 // @description  对自考毕业生登记表进行校验，校验在职状态、职务、曾用名、政治面貌、邮编等字段
 // @author       sleepybear@jxksy
 // @match        https://zk.zjzs.net:81/CertificateManage/FilePrintManage/filePrint.aspx*
@@ -14,45 +14,45 @@
 
     class VerifyConfig {
         constructor(props) {
-            this.团员年龄判断 = props.团员年龄判断 != null ? props.团员年龄判断 : true;
-            this.政治面貌 = props.政治面貌 != null ? props.政治面貌 : true;
-            this.是否有曾用名 = props.是否有曾用名 != null ? props.是否有曾用名 : true;
-            this.学历 = props.学历 != null ? props.学历 : true;
-            this.职务 = props.职务 != null ? props.职务 : true;
-            this.邮编 = props.邮编 != null ? props.邮编 : true;
-            this.单位 = props.单位 != null ? props.单位 : true;
-            this.在职状态单位对应 = props.在职状态单位对应 != null ? props.在职状态单位对应 : true;
+            this["团员年龄判断"] = props["团员年龄判断"] != null ? props["团员年龄判断"] : true;
+            this["政治面貌"] = props["政治面貌"] != null ? props["政治面貌"] : true;
+            this["是否有曾用名"] = props["是否有曾用名"] != null ? props["是否有曾用名"] : true;
+            this["学历"] = props["学历"] != null ? props["学历"] : true;
+            this["职务"] = props["职务"] != null ? props["职务"] : true;
+            this["邮编"] = props["邮编"] != null ? props["邮编"] : true;
+            this["单位"] = props["单位"] != null ? props["单位"] : true;
+            this["在职状态单位对应"] = props["在职状态单位对应"] != null ? props["在职状态单位对应"] : true;
+            this["民族"] = props["民族"] != null ? props["民族"] : true;
         }
     }
 
     class Person {
         constructor(props) {
-            this.专业代码 = props.专业代码;
-            this.姓名 = props.姓名;
-            this.身份证号 = props.身份证号;
-            this.准考证号 = props.准考证号;
-            this.政治面貌 = props.政治面貌;
-            this.曾用名 = props.曾用名;
-            this.民族 = props.民族;
-            this.出生年月 = props.出生年月;
-            this.是否在职 = props.是否在职;
+            this["专业代码"] = props["专业代码"];
+            this["姓名"] = props["姓名"];
+            this["身份证号"] = props["身份证号"];
+            this["准考证号"] = props["准考证号"];
+            this["政治面貌"] = props["政治面貌"];
+            this["曾用名"] = props["曾用名"];
+            this["民族"] = props["民族"];
+            this["出生年月"] = props["出生年月"];
+            this["是否在职"] = props["是否在职"];
             this["现任职务、职称或工种"] = props["现任职务、职称或工种"];
-            this.参加自学考试前学历 = props.参加自学考试前学历;
-            this.工作单位 = props.工作单位;
-            this.联系电话 = props.联系电话;
-            this.邮政编码 = props.邮政编码;
-            this.通讯地址 = props.通讯地址;
+            this["参加自学考试前学历"] = props["参加自学考试前学历"];
+            this["工作单位"] = props["工作单位"];
+            this["联系电话"] = props["联系电话"];
+            this["邮政编码"] = props["邮政编码"];
+            this["通讯地址"] = props["通讯地址"];
 
             this.age = null;
 
-            this.verifySuccess = false;
             this.verifyMessage = [];
         }
 
         build() {
             // build age, ymd 2003-03-14 to float age，精确到小数点后 1 位，直接计算总天数 / 365.25
             let now = new Date();
-            let birth = new Date(this.出生年月.value);
+            let birth = new Date(this["出生年月"].value);
             let diff = now - birth;
             this.age = diff / (1000 * 60 * 60 * 24 * 365.25);
             this.age = this.age.toFixed(1);
@@ -60,34 +60,44 @@
 
         verify(verifyConfig) {
             // 年龄大于 28 岁并且还是共青团员的不通过
-            if (verifyConfig.团员年龄判断 && this.age > 28 && this.政治面貌.value === "团员") {
+            if (verifyConfig["团员年龄判断"] && this.age > 28 && this["政治面貌"].value === "团员") {
                 this.verifyMessage.push("超年龄团员");
             }
-            if (verifyConfig.政治面貌 && !this.政治面貌.value) {
-                this.verifyMessage.push("政治面貌为空")
+            if (verifyConfig["团员年龄判断"] && this.age < 18 && this["政治面貌"].value === "党员") {
+                this.verifyMessage.push("未到18岁的党员");
             }
-            if (verifyConfig.学历 && !this.参加自学考试前学历.value) {
-                this.verifyMessage.push("学历为空")
+            if (verifyConfig["政治面貌"] && !this["政治面貌"].value) {
+                this.verifyMessage.push("政治面貌为空");
+            }
+            if (verifyConfig["学历"] && !this["参加自学考试前学历"].value) {
+                this.verifyMessage.push("学历为空");
             }
             // 有曾用名提醒
-            if (verifyConfig.是否有曾用名 && this.曾用名.value !== "无") {
+            if (verifyConfig["是否有曾用名"] && this["曾用名"].value !== "无") {
                 this.verifyMessage.push("有曾用名");
             }
             // 现任职务、职称或工种为空
-            if (verifyConfig.职务 && !this["现任职务、职称或工种"].value) {
-                this.verifyMessage.push("职务为空")
+            if (verifyConfig["职务"] && !this["现任职务、职称或工种"].value) {
+                this.verifyMessage.push("职务为空");
             }
             // 邮编为空
-            if (verifyConfig.邮编 && !this.邮政编码.value) {
-                this.verifyMessage.push("邮编为空")
+            if (verifyConfig["邮编"] && !this["邮政编码"].value) {
+                this.verifyMessage.push("邮编为空");
+            }
+            // 民族校验
+            if (verifyConfig["民族"] && !this["民族"].value) {
+                this.verifyMessage.push("民族为空");
+            }
+            if (verifyConfig["民族"] && this["民族"].value === "其他") {
+                this.verifyMessage.push("民族为其他");
             }
             // 在职但是工作单位名称字样不包含（学校、学院、大学）字样
             let validList = ["学校", "学院", "大学"];
-            if (verifyConfig.在职状态单位对应) {
-                if (this.是否在职.value === "否") {
+            if (verifyConfig["在职状态单位对应"]) {
+                if (this["是否在职"].value === "否") {
                     let valid = false;
                     for (let i = 0; i < validList.length; i++) {
-                        if (this.工作单位.value.indexOf(validList[i]) >= 0) {
+                        if (this["工作单位"].value.indexOf(validList[i]) >= 0) {
                             valid = true;
                             break;
                         }
@@ -95,10 +105,15 @@
                     if (!valid) {
                         this.verifyMessage.push("非在职但不为学校")
                     }
-                } else if (this.是否在职.value === "是") {
+
+                    // 非在职且职务可能有问题
+                    if (verifyConfig["职务"] && this["现任职务、职称或工种"].value && this["现任职务、职称或工种"].value !== "学生" && this["现任职务、职称或工种"].value.indexOf("失业") < 0) {
+                        this.verifyMessage.push("非在职且职业可能有问题");
+                    }
+                } else if (this["是否在职"].value === "是") {
                     let valid = false;
                     for (let i = 0; i < validList.length; i++) {
-                        if (this.工作单位.value.indexOf(validList[i]) >= 0) {
+                        if (this["工作单位"].value.indexOf(validList[i]) >= 0) {
                             valid = true;
                             break;
                         }
@@ -107,13 +122,6 @@
                         this.verifyMessage.push("在职但为学校单位")
                     }
                 }
-            }
-        }
-
-        change(key, value) {
-            let nv = this[key];
-            if (nv) {
-                nv.node.getElementsByTagName("span")[0].innerText = value;
             }
         }
     }
@@ -219,8 +227,8 @@
         let codes = {};
         let schools = {};
         persons.forEach(p => {
-            codes[p.专业代码.value] = 1;
-            schools[p.工作单位.value] = 1;
+            codes[p["专业代码"].value] = 1;
+            schools[p["工作单位"].value] = 1;
         });
         let codeCount = Object.keys(codes).length;
         let schoolCount = Object.keys(schools).length;
@@ -266,7 +274,6 @@
         verifyDiv.style.textAlign = "left";
         firstDiv.appendChild(verifyDiv);
 
-
         let innerHTML = `<h3>校验提示（该部分打印时不显示）</h3>
     <p><button onclick="window.print();">打印</button></p>
     <div id="verify-zk-config-checkbox"></div>
@@ -281,35 +288,36 @@
             }
             let message = person.verifyMessage.join("，");
             // 需要用 ol 来显示错误信息
-            innerHTML += `<li>序号：[<a href="#${zkScriptIdKey}${i}">${(i + 1) < 10 ? ("0" + (i + 1)) : (i + 1)}] ${person.姓名.value.padEnd(4, "　")}[${person.准考证号}]</a>：${message}</li>`;
+            innerHTML += `<li>序号：[<a href="#${zkScriptIdKey}${i}">${(i + 1) < 10 ? ("0" + (i + 1)) : (i + 1)}] ${person["姓名"].value.padEnd(4, "　")}</a>[${person["准考证号"]}]：${message}</li>`;
         }
         innerHTML += `</ol>`;
         document.getElementById("verify-zk").innerHTML = innerHTML + "<hr>";
 
-
         let verifyZkConfigCheckboxDiv = document.getElementById("verify-zk-config-checkbox");
         verifyZkConfigCheckboxDiv.innerHTML = `校验配置：
-    |<label>团员年龄判断：<input type="checkbox" id="verify-zk-config-团员年龄判断" ${verifyConfig.团员年龄判断 ? "checked" : ""}></label>
-    |<label>政治面貌：<input type="checkbox" id="verify-zk-config-政治面貌" ${verifyConfig.政治面貌 ? "checked" : ""}></label>
-    |<label>是否有曾用名：<input type="checkbox" id="verify-zk-config-是否有曾用名" ${verifyConfig.是否有曾用名 ? "checked" : ""}></label>
-    |<label>学历：<input type="checkbox" id="verify-zk-config-学历" ${verifyConfig.学历 ? "checked" : ""}></label>
-    |<label>职务：<input type="checkbox" id="verify-zk-config-职务" ${verifyConfig.职务 ? "checked" : ""}></label>
-    |<label>邮编：<input type="checkbox" id="verify-zk-config-邮编" ${verifyConfig.邮编 ? "checked" : ""}></label>
-    |<label>单位：<input type="checkbox" id="verify-zk-config-单位" ${verifyConfig.单位 ? "checked" : ""}></label>
-    |<label>在职状态单位对应：<input type="checkbox" id="verify-zk-config-在职状态单位对应" ${verifyConfig.在职状态单位对应 ? "checked" : ""}></label>
+    |<label>团员年龄判断<input type="checkbox" id="verify-zk-config-团员年龄判断" ${verifyConfig["团员年龄判断"] ? "checked" : ""}></label>
+    |<label>政治面貌<input type="checkbox" id="verify-zk-config-政治面貌" ${verifyConfig["政治面貌"] ? "checked" : ""}></label>
+    |<label>是否有曾用名<input type="checkbox" id="verify-zk-config-是否有曾用名" ${verifyConfig["是否有曾用名"] ? "checked" : ""}></label>
+    |<label>学历<input type="checkbox" id="verify-zk-config-学历" ${verifyConfig["学历"] ? "checked" : ""}></label>
+    |<label>职务<input type="checkbox" id="verify-zk-config-职务" ${verifyConfig["职务"] ? "checked" : ""}></label>
+    |<label>邮编<input type="checkbox" id="verify-zk-config-邮编" ${verifyConfig["邮编"] ? "checked" : ""}></label>
+    |<label>单位<input type="checkbox" id="verify-zk-config-单位" ${verifyConfig["单位"] ? "checked" : ""}></label>
+    |<label>在职状态单位对应<input type="checkbox" id="verify-zk-config-在职状态单位对应" ${verifyConfig["在职状态单位对应"] ? "checked" : ""}></label>
+    |<label>民族<input type="checkbox" id="verify-zk-config-民族" ${verifyConfig["民族"] ? "checked" : ""}></label>
     |<label><button onclick="saveVerifyConfig(); return false;">保存配置</button></p>`;
     }
 
     function saveVerifyConfig() {
         let verifyConfig = {
-            团员年龄判断: document.getElementById("verify-zk-config-团员年龄判断").checked,
-            政治面貌: document.getElementById("verify-zk-config-政治面貌").checked,
-            是否有曾用名: document.getElementById("verify-zk-config-是否有曾用名").checked,
-            学历: document.getElementById("verify-zk-config-学历").checked,
-            职务: document.getElementById("verify-zk-config-职务").checked,
-            邮编: document.getElementById("verify-zk-config-邮编").checked,
-            单位: document.getElementById("verify-zk-config-单位").checked,
-            在职状态单位对应: document.getElementById("verify-zk-config-在职状态单位对应").checked,
+            "团员年龄判断": document.getElementById("verify-zk-config-团员年龄判断").checked,
+            "政治面貌": document.getElementById("verify-zk-config-政治面貌").checked,
+            "是否有曾用名": document.getElementById("verify-zk-config-是否有曾用名").checked,
+            "学历": document.getElementById("verify-zk-config-学历").checked,
+            "职务": document.getElementById("verify-zk-config-职务").checked,
+            "邮编": document.getElementById("verify-zk-config-邮编").checked,
+            "单位": document.getElementById("verify-zk-config-单位").checked,
+            "在职状态单位对应": document.getElementById("verify-zk-config-在职状态单位对应").checked,
+            "民族": document.getElementById("verify-zk-config-民族").checked,
         };
         localStorage.setItem("verify-zk-config", JSON.stringify(verifyConfig));
     }
