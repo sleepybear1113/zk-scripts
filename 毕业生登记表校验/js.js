@@ -12,19 +12,25 @@
 (function () {
     'use strict';
 
+    let colors = [
+        "#ffa563", "#c9ff5c", "#ff0000",
+        "#5f9e00", "#0057cd", "#8f88ff",
+        "#ff89cb", "#8947ff", "#c5a687",
+    ];
+
     let messageWithColor = {
-        "超年龄团员": ["超年龄团员", "#ffa563"],
-        "未到18岁的党员": ["未到18岁的党员", "#ffa563"],
-        "政治面貌为空": ["政治面貌为空", "#ffa563"],
-        "学历为空": ["学历为空", "#c9ff5c"],
-        "有曾用名": ["有曾用名", "#ff0000"],
-        "职务为空": ["职务为空", "#5f9e00"],
-        "邮编为空": ["邮编为空", "#0057cd"],
-        "民族为空": ["民族为空", "#8f88ff"],
-        "民族为其他": ["民族为其他", "#8f88ff"],
-        "非在职但不为学校": ["非在职但不为学校", "#ff89cb"],
-        "非在职且职业可能有问题": ["非在职且职业可能有问题", "#ff89cb"],
-        "在职但为学校单位": ["在职但为学校单位", "#ff89cb"],
+        "超年龄团员": ["超年龄团员", colors[0]],
+        "未到18岁的党员": ["未到18岁的党员", colors[0]],
+        "政治面貌为空": ["政治面貌为空", colors[0]],
+        "学历为空": ["学历为空", colors[1]],
+        "有曾用名": ["有曾用名", colors[2]],
+        "职务为空": ["职务为空", colors[3]],
+        "邮编为空": ["邮编为空", colors[4]],
+        "民族为空": ["民族为空", colors[5]],
+        "民族为其他": ["民族为其他", colors[5]],
+        "非在职但不为学校": ["非在职但不为学校", colors[6]],
+        "非在职且职业可能有问题": ["非在职且职业可能有问题", colors[6]],
+        "在职但为学校单位": ["在职但为学校单位", colors[6]],
     };
 
     class VerifyConfig {
@@ -254,10 +260,10 @@
         // 在 header 的 style 中添加一个 css 属性，打印时不显示
         let style = document.getElementsByTagName("style")[0];
         style.innerText += `@media print {
-        .verify-no-print {
-            display: none;
-        }
-    }`;
+                                .verify-no-print {
+                                    display: none;
+                                }
+                            }`;
 
         // 将页面自带的打印按钮在打印时隐藏
         let body = document.getElementsByTagName("body")[0];
@@ -283,19 +289,12 @@
             return false;
         }
 
-        let verifyDiv = document.createElement("div");
-        verifyDiv.id = "verify-zk";
-        verifyDiv.className = "verify-no-print";
-        verifyDiv.style.textAlign = "left";
-        firstDiv.appendChild(verifyDiv);
-
         let innerHTML = `<h3>校验提示（该部分打印时不显示）</h3>
-    <p><button onclick="window.print();">打印</button></p>
-    <div id="verify-zk-config-checkbox"></div>
-    <p>共有毕业考生数量 ${persons.length} 人，专业数 ${codeCount} 个，工作单位数 ${schoolCount} 个。</p>`;
+                                <p><button onclick="window.print();">打印</button></p>
+                                <div id="verify-zk-config-checkbox"></div>
+                                <p>共有毕业考生数量 ${persons.length} 人，专业数 ${codeCount} 个，工作单位数 ${schoolCount} 个。</p>
+                                <ol>`;
         // 需要用 ol 来显示错误信息
-        innerHTML += `<ol>`;
-
         for (let i = 0; i < persons.length; i++) {
             let person = persons[i];
             if (person.verifyMessage.length === 0) {
@@ -303,10 +302,23 @@
             }
             let messageHtml = person.verifyMessage.map(m => `<span style="color: ${m[1]}">${m[0]}</span>`).join("，");
             // 需要用 ol 来显示错误信息
-            innerHTML += `<li>序号：[<a href="#${zkScriptIdKey}${i}">${(i + 1) < 10 ? ("0" + (i + 1)) : (i + 1)}] ${person["姓名"].value.padEnd(4, "　")}</a>[${person["准考证号"]}]：${messageHtml}</li>`;
+            let indexStr = (i + 1) < 10 ? ("0" + (i + 1)) : (i + 1);
+            let nameStr = person["姓名"].value.padEnd(4, "　");
+            innerHTML += `<li>
+                              <span>序号：</span>
+                              <a href="#${zkScriptIdKey}${i}">[${indexStr}] ${nameStr}</a>
+                              <span>[${person["准考证号"]}]：</span>
+                              <span>${messageHtml}</span>
+                          </li>`;
         }
-        innerHTML += `</ol>`;
-        document.getElementById("verify-zk").innerHTML = innerHTML + "<hr>";
+        innerHTML += `</ol><hr>`;
+
+        let verifyDiv = document.createElement("div");
+        verifyDiv.id = "verify-zk";
+        verifyDiv.className = "verify-no-print";
+        verifyDiv.style.textAlign = "left";
+        verifyDiv.innerHTML = innerHTML;
+        firstDiv.appendChild(verifyDiv);
 
         let verifyZkConfigCheckboxDiv = document.getElementById("verify-zk-config-checkbox");
         verifyZkConfigCheckboxDiv.innerHTML = `校验配置：
