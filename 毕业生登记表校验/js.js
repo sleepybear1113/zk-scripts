@@ -12,6 +12,21 @@
 (function () {
     'use strict';
 
+    let messageWithColor = {
+        "超年龄团员": ["超年龄团员", "#ffa563"],
+        "未到18岁的党员": ["未到18岁的党员", "#ffa563"],
+        "政治面貌为空": ["政治面貌为空", "#ffa563"],
+        "学历为空": ["学历为空", "#c9ff5c"],
+        "有曾用名": ["有曾用名", "#ff0000"],
+        "职务为空": ["职务为空", "#5f9e00"],
+        "邮编为空": ["邮编为空", "#0057cd"],
+        "民族为空": ["民族为空", "#8f88ff"],
+        "民族为其他": ["民族为其他", "#8f88ff"],
+        "非在职但不为学校": ["非在职但不为学校", "#ff89cb"],
+        "非在职且职业可能有问题": ["非在职且职业可能有问题", "#ff89cb"],
+        "在职但为学校单位": ["在职但为学校单位", "#ff89cb"],
+    };
+
     class VerifyConfig {
         constructor(props) {
             this["团员年龄判断"] = props["团员年龄判断"] != null ? props["团员年龄判断"] : true;
@@ -61,35 +76,35 @@
         verify(verifyConfig) {
             // 年龄大于 28 岁并且还是共青团员的不通过
             if (verifyConfig["团员年龄判断"] && this.age > 28 && this["政治面貌"].value === "团员") {
-                this.verifyMessage.push("超年龄团员");
+                this.verifyMessage.push(messageWithColor["超年龄团员"]);
             }
             if (verifyConfig["团员年龄判断"] && this.age < 18 && this["政治面貌"].value === "党员") {
-                this.verifyMessage.push("未到18岁的党员");
+                this.verifyMessage.push(messageWithColor["未到18岁的党员"]);
             }
             if (verifyConfig["政治面貌"] && !this["政治面貌"].value) {
-                this.verifyMessage.push("政治面貌为空");
+                this.verifyMessage.push(messageWithColor["政治面貌为空"]);
             }
             if (verifyConfig["学历"] && !this["参加自学考试前学历"].value) {
-                this.verifyMessage.push("学历为空");
+                this.verifyMessage.push(messageWithColor["学历为空"]);
             }
             // 有曾用名提醒
             if (verifyConfig["是否有曾用名"] && this["曾用名"].value !== "无") {
-                this.verifyMessage.push("有曾用名");
+                this.verifyMessage.push(messageWithColor["有曾用名"]);
             }
             // 现任职务、职称或工种为空
             if (verifyConfig["职务"] && !this["现任职务、职称或工种"].value) {
-                this.verifyMessage.push("职务为空");
+                this.verifyMessage.push(messageWithColor["职务为空"]);
             }
             // 邮编为空
             if (verifyConfig["邮编"] && !this["邮政编码"].value) {
-                this.verifyMessage.push("邮编为空");
+                this.verifyMessage.push(messageWithColor["邮编为空"]);
             }
             // 民族校验
             if (verifyConfig["民族"] && !this["民族"].value) {
-                this.verifyMessage.push("民族为空");
+                this.verifyMessage.push(messageWithColor["民族为空"]);
             }
             if (verifyConfig["民族"] && this["民族"].value === "其他") {
-                this.verifyMessage.push("民族为其他");
+                this.verifyMessage.push(messageWithColor["民族为其他"]);
             }
             // 在职但是工作单位名称字样不包含（学校、学院、大学）字样
             let validList = ["学校", "学院", "大学"];
@@ -102,13 +117,16 @@
                             break;
                         }
                     }
+                    if (this["工作单位"].value === "无") {
+                        valid = true;
+                    }
                     if (!valid) {
-                        this.verifyMessage.push("非在职但不为学校")
+                        this.verifyMessage.push(messageWithColor["非在职但不为学校"]);
                     }
 
                     // 非在职且职务可能有问题
                     if (verifyConfig["职务"] && this["现任职务、职称或工种"].value && this["现任职务、职称或工种"].value !== "学生" && this["现任职务、职称或工种"].value.indexOf("失业") < 0) {
-                        this.verifyMessage.push("非在职且职业可能有问题");
+                        this.verifyMessage.push(messageWithColor["非在职且职业可能有问题"]);
                     }
                 } else if (this["是否在职"].value === "是") {
                     let valid = false;
@@ -119,7 +137,7 @@
                         }
                     }
                     if (valid) {
-                        this.verifyMessage.push("在职但为学校单位")
+                        this.verifyMessage.push(messageWithColor["在职但为学校单位"])
                     }
                 }
             }
@@ -265,12 +283,9 @@
             return false;
         }
 
-        // firstDiv 里面追加一个 id = verify-zk 的 div
         let verifyDiv = document.createElement("div");
         verifyDiv.id = "verify-zk";
-        // 添加一个 classname = verify-no-print
         verifyDiv.className = "verify-no-print";
-        // text-align: left;
         verifyDiv.style.textAlign = "left";
         firstDiv.appendChild(verifyDiv);
 
@@ -286,9 +301,9 @@
             if (person.verifyMessage.length === 0) {
                 continue;
             }
-            let message = person.verifyMessage.join("，");
+            let messageHtml = person.verifyMessage.map(m => `<span style="color: ${m[1]}">${m[0]}</span>`).join("，");
             // 需要用 ol 来显示错误信息
-            innerHTML += `<li>序号：[<a href="#${zkScriptIdKey}${i}">${(i + 1) < 10 ? ("0" + (i + 1)) : (i + 1)}] ${person["姓名"].value.padEnd(4, "　")}</a>[${person["准考证号"]}]：${message}</li>`;
+            innerHTML += `<li>序号：[<a href="#${zkScriptIdKey}${i}">${(i + 1) < 10 ? ("0" + (i + 1)) : (i + 1)}] ${person["姓名"].value.padEnd(4, "　")}</a>[${person["准考证号"]}]：${messageHtml}</li>`;
         }
         innerHTML += `</ol>`;
         document.getElementById("verify-zk").innerHTML = innerHTML + "<hr>";
